@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Untuk Opie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:opsz,wght@14..32,200;14..32,300;14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #e5c17e; border-radius: 4px; }
+        
+        .bg-noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.5;
+        }
+        
+        .slideshow-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            overflow: hidden;
+        }
+        .slide-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: opacity;
+        }
+        .slide-bg.active {
+            opacity: 1;
+        }
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: -2;
+            pointer-events: none;
+        }
+        
+        .cursor-glow {
+            position: fixed;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(229,193,126,0.08) 0%, rgba(229,193,126,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            transition: transform 0.1s;
+        }
+        
+        .museum-card-modern {
+            background: rgba(15, 15, 20, 0.6);
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(229, 193, 126, 0.2);
+            transition: all 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+        .museum-card-modern:hover {
+            border-color: rgba(229, 193, 126, 0.7);
+            transform: translateY(-12px);
+            background: rgba(20, 20, 28, 0.8);
+            box-shadow: 0 25px 40px -12px rgba(0,0,0,0.6);
+        }
+        
+        .gold-shimmer {
+            background: linear-gradient(135deg, rgba(229,193,126,0) 0%, rgba(229,193,126,0.2) 50%, rgba(229,193,126,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+        
+        .particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .reveal-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .reveal-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(229,193,126,0.3), transparent);
+            transition: left 0.6s;
+        }
+        .reveal-btn:hover::before { left: 100%; }
+        
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(229,193,126,0.2);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-10px); }
+        }
+        .floating { animation: float 4s ease-in-out infinite; }
+        
+        @media (pointer: coarse) {
+            .cursor-glow { display: none; }
+        }
+        
+        .hero-mask {
+            mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+        }
+        
+        .gallery-container {
+            width: 100%;
+            overflow-x: hidden;
+            position: relative;
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            cursor: grab;
+        }
+        .gallery-container:active {
+            cursor: grabbing;
+        }
+        .gallery-track {
+            display: flex;
+            gap: 2rem;
+            width: max-content;
+            will-change: transform;
+        }
+        .gallery-item {
+            width: 320px;
+            flex-shrink: 0;
+            background: rgba(10, 10, 15, 0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(229, 193, 126, 0.2);
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .gallery-item:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: #e5c17e;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.6);
+        }
+        .gallery-img {
+            transition: transform 0.7s ease;
+        }
+        .gallery-item:hover .gallery-img {
+            transform: scale(1.08);
+        }
+        .gallery-caption {
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+        }
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(15px);
+            z-index: 6000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .lightbox.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .lightbox-content {
+            max-width: 85vw;
+            max-height: 70vh;
+            object-fit: contain;
+            border: 1px solid rgba(229,193,126,0.4);
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+            border-radius: 1rem;
+        }
+        .lightbox-caption {
+            margin-top: 1.5rem;
+            max-width: 80vw;
+            text-align: center;
+            color: #e5c17e;
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            background: rgba(0,0,0,0.6);
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(229,193,126,0.3);
+        }
+        @media (max-width: 640px) {
+            .gallery-item { width: 260px; }
+            .lightbox-caption { font-size: 0.85rem; max-width: 90vw; }
+        }
+        .external-btn {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(229,193,126,0.3);
+            transition: all 0.2s ease;
+        }
+        .external-btn:hover {
+            border-color: #e5c17e;
+            background: rgba(229,193,126,0.15);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="text-white selection:bg-[#e5c17e] selection:text-black">
+
+    <div class="slideshow-bg" id="slideshowBg"></div>
+    <div class="bg-overlay"></div>
+    <div class="bg-noise"></div>
+    <canvas id="particleCanvas" class="particle-canvas"></canvas>
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <audio id="bgAudio" loop preload="auto">
+        <source src="music/Backsound.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="splashScreen" class="fixed inset-0 z-[9999] flex items-center justify-center bg-[#050505] transition-all duration-[1.8s] ease-out">
+        <div class="text-center px-6">
+            <div class="w-12 h-12 mx-auto mb-8 border-t-2 border-r-2 border-[#e5c17e] rounded-full animate-spin"></div>
+            <p class="text-[10px] tracking-[0.6em] text-[#e5c17e]/60 mb-6">UNTUK OPIE</p>
+            <button id="unlockBtn" class="group relative px-10 py-4 border border-[#e5c17e]/40 hover:border-[#e5c17e] transition-all duration-500">
+                <span class="relative z-10 text-sm tracking-[0.3em] uppercase font-light group-hover:tracking-[0.5em] transition-all">Buka</span>
+                <span class="absolute inset-0 bg-[#e5c17e]/10 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+            </button>
+            <p class="text-[8px] tracking-[0.2em] text-white/30 mt-8">Dari Onal</p>
+        </div>
+    </div>
+
+    <div class="fixed top-5 left-5 z-[200] mix-blend-difference">
+        <div class="text-[9px] tracking-[0.4em] text-white/70">Ron's</div>
+    </div>
+    
+    <div class="fixed bottom-8 right-8 z-[200] flex flex-col gap-3 items-end">
+        <button id="musicToggleBtn" class="w-12 h-12 rounded-full border border-[#e5c17e]/30 bg-black/40 backdrop-blur flex items-center justify-center hover:border-[#e5c17e] transition-all">
+            <span id="musicIconText" class="text-[#e5c17e] text-xl">♪</span>
+        </button>
+    </div>
+
+    <div id="detailOverlay" class="fixed inset-0 z-[5000] bg-black/95 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-all duration-700">
+        <div class="max-w-3xl w-full mx-6 transform scale-95 transition-all duration-700" id="detailContainer">
+            <div class="glass-panel rounded-2xl p-8 md:p-12 text-center border-l-4 border-[#e5c17e]">
+                <span id="detailCat" class="text-[10px] tracking-[0.5em] text-[#e5c17e]/70 block mb-4"></span>
+                <h2 id="detailTitle" class="font-serif text-5xl md:text-7xl italic mb-6"></h2>
+                <div class="w-16 h-px bg-[#e5c17e]/40 mx-auto my-8"></div>
+                <p id="detailDesc" class="text-xl md:text-3xl font-light leading-relaxed text-white/90 min-h-[160px]"></p>
+                <button onclick="closeDetail()" class="mt-12 text-[10px] tracking-[0.4em] text-[#e5c17e]/60 hover:text-[#e5c17e] transition-colors border-b border-[#e5c17e]/20 pb-1">TUTUP</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="lightbox" id="lightbox">
+        <div class="flex flex-col items-center justify-center">
+            <img id="lightboxImg" class="lightbox-content" alt="preview">
+            <div id="lightboxCaption" class="lightbox-caption"></div>
+        </div>
+    </div>
+
+    <div class="fixed top-0 left-0 w-full h-0.5 bg-[#e5c17e]/20 z-[300]">
+        <div id="scrollProgress" class="h-full bg-[#e5c17e] w-0 transition-all duration-200"></div>
+    </div>
+
+    <header class="relative min-h-screen flex flex-col justify-center px-6 md:px-16 pt-32 pb-20 overflow-hidden">
+        <div class="absolute inset-0 opacity-20 hero-mask">
+            <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-[#e5c17e] rounded-full blur-[120px]"></div>
+        </div>
+        <div class="relative z-10 max-w-7xl mx-auto w-full">
+            <div class="mb-12 inline-block">
+                <span class="text-[11px] tracking-[0.4em] text-[#e5c17e]/70 border-l-2 border-[#e5c17e] pl-4">YOVITA TRI REJEKI</span>
+            </div>
+            <h1 class="font-serif text-[15vw] md:text-[9vw] leading-[0.9] font-bold tracking-tighter">
+                <span class="block text-white/20 italic">My Lovely</span>
+                <span class="block text-white drop-shadow-2xl ml-8 md:ml-16">Girl.</span>
+            </h1>
+            <div class="mt-16 md:mt-28 flex flex-wrap justify-between items-end border-t border-white/10 pt-12">
+                <p class="max-w-md text-xs md:text-sm font-light tracking-wider text-white/50 leading-loose">
+                    Sebuah narasi visual untuk mengingatkan kamu bahwa disetiap langkahmu adalah sebuah mahakarya Tuhan.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-32">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="cardsGrid"></div>
+    </main>
+
+    <section class="w-full py-16 relative overflow-hidden">
+        <div class="mb-12 text-center px-6">
+            <span class="text-[10px] tracking-[0.5em] text-[#e5c17e]/70">Gallery</span>
+            <h2 class="font-serif text-4xl md:text-6xl italic mt-3">Keceriaan</h2>
+            <div class="w-20 h-px bg-[#e5c17e]/40 mx-auto mt-5"></div>
+        </div>
+        
+        <div class="gallery-container" id="galleryContainer">
+            <div class="gallery-track" id="galleryTrack"></div>
+        </div>
+    </section>
+
+    <section class="max-w-6xl mx-auto px-6 md:px-12 py-20 border-y border-white/5 my-12">
+        <div class="flex flex-col lg:flex-row gap-12 items-center">
+            <div class="flex-1 space-y-4">
+                <h2 class="font-serif text-4xl md:text-5xl italic">Kutipan yang <br>kupilih untukmu</h2>
+                <div class="h-px w-20 bg-[#e5c17e]/40"></div>
+            </div>
+            <div class="flex-1 bg-black/40 p-8 rounded-2xl border border-[#e5c17e]/10 backdrop-blur-sm">
+                <p id="dailyQuote" class="text-xl md:text-2xl font-light italic leading-relaxed">"Kamu tidak perlu menjadi sempurna untuk menjadi berharga. Cukup menjadi dirimu sendiri yang terus bertumbuh."</p>
+                <button id="refreshQuote" class="mt-6 text-[10px] tracking-[0.3em] text-[#e5c17e]/60 hover:text-[#e5c17e] transition">⟳ Ganti Kutipan</button>
+            </div>
+        </div>
+    </section>
+
+    <footer class="max-w-4xl mx-auto px-6 md:px-10 py-32 text-center">
+        <div class="space-y-8">
+            <div class="w-16 h-px bg-[#e5c17e]/40 mx-auto"></div>
+            <div id="finalMessageArea" class="min-h-[200px]">
+                <div id="finalTypingTarget" class="font-serif text-2xl md:text-4xl italic leading-relaxed text-white/80"></div>
+            </div>
+            <button id="revealFinalBtn" class="reveal-btn mt-8 px-12 py-5 border border-[#e5c17e]/40 text-[10px] tracking-[0.6em] text-[#e5c17e] uppercase hover:bg-[#e5c17e] hover:text-black transition-all duration-700">
+                Baca Pesan Terakhir
+            </button>
+        </div>
+        <p class="text-[8px] tracking-[0.2em] text-white/20 mt-32">Ora et Labora - Tuhan Yesus Memberkati</p>
+    </footer>
+
+    <script>
+        const fragments = [
+            { id: "01", cat: "RESILIENCE", title: "Ketangguhan", desc: "Aku selalu kagum melihat ketangguhanmu, caramu bangkit dan tetap tersenyum ditengah badai membuktikan betapa kuatnya jiwamu." },
+            { id: "02", cat: "GROWTH", title: "Proses", desc: "Melihatmu terus bertumbuh dan belajar setiap hari adalah sebuah kehormatan bagiku, kamu yang sekarang selalu lebih menginspirasi dari hari kemarin." },
+            { id: "03", cat: "WORTH", title: "Nilai Diri", desc: "Kamu tidak perlu membuktikan apa pun kepada dunia, karena bernilainya dirimu sudah terpancar murni dari kebaikan dan tulusnya hatimu." },
+            { id: "04", cat: "AMBITION", title: "Impian", desc: "Mimpi-mimpimu sangat indah dan berani, aku percaya penuh pada potensimu dan akan selalu siap mendukung setiap langkah besarmu." },
+            { id: "05", cat: "AURA", title: "Energi", desc: "Kehadiranmu selalu membawa kedamaian dan kehangatan tersendiri, aura positifmu mampu mengubah suasana sendu menjadi ceria." },
+            { id: "06", cat: "CONFIDENCE", title: "Keyakinan", desc: "Caramu melangkah dan membawakan diri dengan penuh keyakinan adalah alasan mengapa kamu begitu memikat dan dihormati." },
+            { id: "07", cat: "GRACE", title: "Kelembutan", desc: "Keanggunanmu bukan hanya tentang penampilan, melainkan caramu memperlakukan orang lain dengan ketenangan, kelembutan dan kepedulian." },
+            { id: "08", cat: "PERSISTENCE", title: "Konsistensi", desc: "Fokus dan kegigihanmu dalam memperjuangkan apa yang kamu yakini adalah hal yang paling aku banggakan dari dirimu." },
+            { id: "09", cat: "LUMINANCE", title: "Cahaya", desc: "Kamu memiliki cahaya alami yang tak bisa dipadamkan, caramu menyinari hidupku dan orang-orang disekitarmu sungguh luar biasa." }
+        ];
+
+        const quoteBank = [
+            "“Kamu adalah karya seni yang terus dilukis, setiap hari adalah sapuan kuas baru.”",
+            "“Jangan membandingkan dirimu dengan siapa pun di dunia ini. Jika kamu melakukannya, kamu sedang menghina dirimu sendiri.”",
+            "“Dua hari terpenting dalam hidupmu adalah hari saat kamu lahir dan hari saat kamu mengetahui alasannya.”",
+            "“Kamu tidak perlu berteriak untuk didengar. Aurumu sudah cukup berbicara.”",
+            "“Setiap hari kamu bertahan adalah kemenangan yang tak terlihat.”",
+            "“Tetaplah lembut di dunia yang seringkali keras. Itulah bentuk keberanian sejati.”"
+        ];
+
+        const galleryItems = [
+            { thumb: "photo/1.jpeg", full: "photo/1.jpeg", title: "", desc: "Kamu adalah rumah tempat aku selalu ingin pulang, tempat dimana segala lelahku hilang hanya dengan melihat senyummu." },
+            { thumb: "photo/2.jpeg", full: "photo/2.jpeg", title: "", desc: "Kehadiranmu dihidupku bukan sekadar pelengkap, melainkan anugerah terindah yang membuat hari-hariku jauh lebih bermakna." },
+            { thumb: "photo/3.jpeg", full: "photo/3.jpeg", title: "", desc: "Aku sangat mengagumi ketulusan hatimu dan caramu memperlakukan dunia dengan begitu penuh cinta." },
+            { thumb: "photo/4.jpeg", full: "photo/4.jpeg", title: "", desc: "Setiap hari aku bersyukur kepada Tuhan karena telah mempertemukan aku dengan perempuan sehebat dan sekuat kamu." },
+            { thumb: "photo/5.jpeg", full: "photo/5.jpeg", title: "", desc: "Kamu tidak perlu meragukan dirimu sendiri, karena dimataku kamu sudah lebih dari cukup dan sempurna dengan caramu sendiri." },
+            { thumb: "photo/6.jpeg", full: "photo/6.jpeg", title: "", desc: "Terima kasih telah menjadi pendengar terbaik dan tempat paling aman untuk aku menceritakan segala keluh kesahku." },
+            { thumb: "photo/7.jpeg", full: "photo/7.jpeg", title: "", desc: "Senyumanmu adalah alasan terbesarku untuk selalu bersemangat menjalani hari-hari yang berat." },
+            { thumb: "photo/8.jpeg", full: "photo/8.jpeg", title: "", desc: "Aku bangga melihat caramu bertumbuh, berjuang dan menghadapi setiap tantangan hidup dengan begitu anggun." },
+            { thumb: "photo/9.jpeg", full: "photo/9.jpeg", title: "", desc: "Cintamu telah mengajarkanku arti sabar, ikhlas dan bagaimana rasanya dicintai dengan tulus tanpa syarat." },
+            { thumb: "photo/10.jpeg", full: "photo/10.jpeg", title: "", desc: "Apapun impian dan hal yang sedang kamu usahakan saat ini, aku akan selalu berada di barisan paling depan untuk mendukungmu." },
+            { thumb: "photo/11.jpeg", full: "photo/11.jpeg", title: "", desc: "Tidak ada kata yang cukup untuk menggambarkan betapa berartinya kamu di dalam hidupku hari ini, esok, dan selamanya." },
+            { thumb: "photo/12.jpeg", full: "photo/12.jpeg", title: "", desc: "Didekatmu, aku merasa bisa menjadi versi terbaik dari diriku sendiri tanpa harus takut dihakimi." },
+            { thumb: "photo/13.jpeg", full: "photo/13.jpeg", title: "", desc: "Kamu adalah orang yang paling aku kagumi dan cintai dan aku bersyukur karena telah menemukan kamu didalam hidupku." }
+        ];
+
+        const slideshowImages = [
+            "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1920&auto=format",
+            "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&auto=format",
+            "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&auto=format",
+            "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&auto=format",
+            "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&auto=format"
+        ];
+
+        let slideshowIndex = 0;
+        function initSlideshow() {
+            const container = document.getElementById('slideshowBg');
+            container.innerHTML = '';
+            slideshowImages.forEach((imgUrl, idx) => {
+                const div = document.createElement('div');
+                div.className = `slide-bg ${idx === 0 ? 'active' : ''}`;
+                div.style.backgroundImage = `url('${imgUrl}')`;
+                container.appendChild(div);
+            });
+            setInterval(() => {
+                const slides = document.querySelectorAll('.slide-bg');
+                if (!slides.length) return;
+                slides[slideshowIndex].classList.remove('active');
+                slideshowIndex = (slideshowIndex + 1) % slides.length;
+                slides[slideshowIndex].classList.add('active');
+            }, 6000);
+        }
+        initSlideshow();
+
+        const cardsGrid = document.getElementById('cardsGrid');
+        const splash = document.getElementById('splashScreen');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const bgAudio = document.getElementById('bgAudio');
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        const musicIconText = document.getElementById('musicIconText');
+        const revealFinalBtn = document.getElementById('revealFinalBtn');
+        const finalTypingTarget = document.getElementById('finalTypingTarget');
+        const refreshQuote = document.getElementById('refreshQuote');
+        const dailyQuoteP = document.getElementById('dailyQuote');
+        const scrollProgress = document.getElementById('scrollProgress');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        const lightboxCaption = document.getElementById('lightboxCaption');
+
+        let musicPlaying = false;
+        let musicUnlocked = false;
+        let typewriterTimeout = null;
+
+        function initParticles() {
+            const canvas = document.getElementById('particleCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            const particlesArray = [];
+            const PARTICLE_COUNT = 80;
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                particlesArray.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 2 + 1,
+                    alpha: Math.random() * 0.4 + 0.1,
+                    speedX: (Math.random() - 0.5) * 0.3,
+                    speedY: (Math.random() - 0.5) * 0.2,
+                });
+            }
+            function drawParticles() {
+                if (!ctx) return;
+                ctx.clearRect(0, 0, width, height);
+                for (let p of particlesArray) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(229, 193, 126, ${p.alpha})`;
+                    ctx.fill();
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    if (p.x < 0) p.x = width;
+                    if (p.x > width) p.x = 0;
+                    if (p.y < 0) p.y = height;
+                    if (p.y > height) p.y = 0;
+                }
+                requestAnimationFrame(drawParticles);
+            }
+            drawParticles();
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                width = canvas.width;
+                height = canvas.height;
+            });
+        }
+        initParticles();
+
+        const cursorGlowEl = document.getElementById('cursorGlow');
+        document.addEventListener('mousemove', (e) => {
+            if (cursorGlowEl) {
+                cursorGlowEl.style.left = e.clientX + 'px';
+                cursorGlowEl.style.top = e.clientY + 'px';
+            }
+        });
+
+        fragments.forEach((item, idx) => {
+            const card = document.createElement('div');
+            card.className = 'transform transition-all duration-700 opacity-0 translate-y-8';
+            card.style.transitionDelay = `${idx * 80}ms`;
+            card.innerHTML = `
+                <div class="museum-card-modern rounded-2xl p-7 md:p-9 h-full flex flex-col justify-between cursor-pointer group" data-id="${item.id}" data-cat="${item.cat}" data-title="${item.title}" data-desc="${item.desc}">
+                    <div>
+                        <div class="flex justify-between items-start mb-6">
+                            <span class="text-[10px] tracking-[0.4em] text-[#e5c17e]/60">${item.cat}</span>
+                            <span class="font-serif text-lg text-white/20 group-hover:text-[#e5c17e]/60 transition">${item.id}</span>
+                        </div>
+                        <h3 class="font-serif text-3xl md:text-4xl italic mb-5 group-hover:text-[#e5c17e] transition">${item.title}</h3>
+                        <div class="w-10 h-px bg-[#e5c17e]/40 group-hover:w-20 transition-all duration-500 mb-8"></div>
+                    </div>
+                    <p class="text-[9px] tracking-[0.2em] text-white/30 group-hover:text-[#e5c17e]/80 transition">Buka renungan →</p>
+                </div>
+            `;
+            cardsGrid.appendChild(card);
+            setTimeout(() => {
+                card.classList.remove('opacity-0', 'translate-y-8');
+                card.classList.add('opacity-100', 'translate-y-0');
+            }, 200);
+            const cardDiv = card.querySelector('.museum-card-modern');
+            cardDiv.addEventListener('click', () => openDetail(item.cat, item.title, item.desc));
+        });
+
+        function openDetail(cat, title, desc) {
+            const overlay = document.getElementById('detailOverlay');
+            const detailCat = document.getElementById('detailCat');
+            const detailTitle = document.getElementById('detailTitle');
+            const detailDesc = document.getElementById('detailDesc');
+            detailCat.innerText = cat;
+            detailTitle.innerText = title;
+            detailDesc.innerHTML = '';
+            overlay.classList.add('opacity-100', 'pointer-events-auto');
+            overlay.querySelector('#detailContainer').classList.remove('scale-95');
+            overlay.querySelector('#detailContainer').classList.add('scale-100');
+            startTypewriter(detailDesc, `"${desc}"`);
+        }
+        
+        function startTypewriter(element, text) {
+            if (typewriterTimeout) clearTimeout(typewriterTimeout);
+            element.innerHTML = '';
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    typewriterTimeout = setTimeout(type, 35);
+                }
+            }
+            type();
+        }
+        
+        window.closeDetail = function() {
+            const overlay = document.getElementById('detailOverlay');
+            overlay.classList.remove('opacity-100', 'pointer-events-auto');
+            overlay.querySelector('#detailContainer').classList.remove('scale-100');
+            overlay.querySelector('#detailContainer').classList.add('scale-95');
+            if (typewriterTimeout) clearTimeout(typewriterTimeout);
+        };
+        
+        function startExperience() {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 1500);
+            if (!musicUnlocked) {
+                musicUnlocked = true;
+                bgAudio.play().then(() => {
+                    musicPlaying = true;
+                    musicIconText.innerText = '♫';
+                }).catch(() => {
+                    document.body.addEventListener('click', function once() {
+                        bgAudio.play().then(() => {
+                            musicPlaying = true;
+                            musicIconText.innerText = '♫';
+                        }).catch(e=>{});
+                        document.body.removeEventListener('click', once);
+                    });
+                });
+            }
+        }
+        
+        unlockBtn.addEventListener('click', startExperience);
+        
+        function toggleMusic() {
+            if (!musicPlaying) {
+                bgAudio.play().then(() => {
+                    musicPlaying = true;
+                    musicIconText.innerText = '♫';
+                }).catch(e => console.log);
+            } else {
+                bgAudio.pause();
+                musicPlaying = false;
+                musicIconText.innerText = '♪';
+            }
+        }
+        musicToggleBtn.addEventListener('click', toggleMusic);
+        
+        let finalRevealed = false;
+        revealFinalBtn.addEventListener('click', () => {
+            if (finalRevealed) return;
+            finalRevealed = true;
+            const finalText = "Kamu hebat hari ini, kamu hebat kemarin dan kamu akan tetap hebat besok, apapun yang terjadi, aku cuman mau kamu tahu, di sela kesibukanmu ada seseorang yang selalu mendoakan, menyemangati dan mendukung kamu dari sini.";
+            revealFinalBtn.style.opacity = '0';
+            revealFinalBtn.style.pointerEvents = 'none';
+            setTimeout(() => {
+                revealFinalBtn.style.display = 'none';
+                startTypewriter(finalTypingTarget, finalText);
+                const scriptC = document.createElement('script');
+                scriptC.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1';
+                scriptC.onload = () => canvasConfetti({ particleCount: 200, spread: 100, origin: { y: 0.8 } });
+                document.head.appendChild(scriptC);
+            }, 400);
+        });
+        
+        refreshQuote.addEventListener('click', () => {
+            const newQuote = quoteBank[Math.floor(Math.random() * quoteBank.length)];
+            dailyQuoteP.style.opacity = '0';
+            setTimeout(() => {
+                dailyQuoteP.innerText = newQuote;
+                dailyQuoteP.style.opacity = '1';
+            }, 200);
+        });
+        
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - window.innerHeight;
+            const scrolled = (winScroll / height) * 100;
+            scrollProgress.style.width = scrolled + '%';
+        });
+        
+        const observerCards = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('#cardsGrid > div').forEach(c => observerCards.observe(c));
+        
+        setInterval(() => {
+            const goldShimmer = document.querySelectorAll('.museum-card-modern');
+            goldShimmer.forEach(el => {
+                if (Math.random() > 0.9) {
+                    el.classList.add('gold-shimmer');
+                    setTimeout(() => el.classList.remove('gold-shimmer'), 1000);
+                }
+            });
+        }, 4000);
+        
+        document.getElementById('detailOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeDetail();
+        });
+        
+        dailyQuoteP.innerText = quoteBank[0];
+
+        function openLightbox(imgSrc, captionText) {
+            lightboxImg.src = imgSrc;
+            lightboxCaption.innerText = captionText;
+            lightbox.classList.add('active');
+        }
+
+        lightbox.addEventListener('click', () => {
+            lightbox.classList.remove('active');
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+                lightbox.classList.remove('active');
+            }
+        });
+
+        function buildGallery() {
+            const track = document.getElementById('galleryTrack');
+            track.innerHTML = '';
+            const duplicateCount = 6;
+            for (let cycle = 0; cycle < duplicateCount; cycle++) {
+                galleryItems.forEach((item, idx) => {
+                    const galItem = document.createElement('div');
+                    galItem.className = 'gallery-item group';
+                    galItem.setAttribute('data-desc', item.desc);
+                    galItem.setAttribute('data-full', item.full);
+                    galItem.innerHTML = `
+                        <div class="relative overflow-hidden h-80">
+                            <img src="${item.thumb}" alt="${item.title}" class="gallery-img w-full h-full object-cover transition duration-700">
+                            <div class="gallery-caption absolute inset-0 flex flex-col justify-end p-5 translate-y-4 group-hover:translate-y-0 transition duration-500">
+                                <h3 class="font-serif text-xl text-white drop-shadow-md">${item.title}</h3>
+                                <p class="text-xs text-white/80 opacity-0 group-hover:opacity-100 transition delay-100">${item.desc}</p>
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-[#e5c17e]/20 flex justify-between items-center">
+                            <span class="text-[9px] tracking-wider text-[#e5c17e]/70">KAMU HEBAT</span>
+                        </div>
+                    `;
+                    galItem.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openLightbox(item.full, item.desc);
+                    });
+                    track.appendChild(galItem);
+                });
+            }
+        }
+        
+        buildGallery();
+        
+        const track = document.getElementById('galleryTrack');
+        const container = document.getElementById('galleryContainer');
+        let currentTranslate = 0;
+        let autoAnimFrame = null;
+        let autoSpeed = 0.52;
+        let isDragging = false;
+        let startX = 0;
+        let startTranslate = 0;
+        let trackWidth = 0;
+        let originalSetWidth = 0;
+        let dragThreshold = 5;
+        let dragMoved = false;
+        
+        function updateTrackWidths() {
+            if (!track) return;
+            trackWidth = track.scrollWidth;
+            const duplicateCount = 6;
+            const oneSetWidth = trackWidth / duplicateCount;
+            originalSetWidth = oneSetWidth;
+        }
+        
+        function applyTranslate(translate) {
+            if (!track) return;
+            track.style.transform = `translateX(${translate}px)`;
+            currentTranslate = translate;
+        }
+        
+        function handleInfiniteLoop() {
+            if (!track || originalSetWidth === 0) return;
+            if (currentTranslate <= -originalSetWidth) {
+                currentTranslate += originalSetWidth;
+                applyTranslate(currentTranslate);
+            } else if (currentTranslate > 0) {
+                currentTranslate -= originalSetWidth;
+                applyTranslate(currentTranslate);
+            }
+        }
+        
+        function autoScroll() {
+            if (isDragging) return;
+            currentTranslate -= autoSpeed;
+            applyTranslate(currentTranslate);
+            handleInfiniteLoop();
+            autoAnimFrame = requestAnimationFrame(autoScroll);
+        }
+        
+        function startAutoScroll() {
+            if (autoAnimFrame) cancelAnimationFrame(autoAnimFrame);
+            autoAnimFrame = requestAnimationFrame(autoScroll);
+        }
+        
+        function stopAutoScroll() {
+            if (autoAnimFrame) {
+                cancelAnimationFrame(autoAnimFrame);
+                autoAnimFrame = null;
+            }
+        }
+        
+        function onDragStart(e) {
+            const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+            startX = clientX;
+            startTranslate = currentTranslate;
+            isDragging = true;
+            dragMoved = false;
+            stopAutoScroll();
+            container.style.cursor = 'grabbing';
+            if (e.cancelable) e.preventDefault();
+        }
+        
+        function onDragMove(e) {
+            if (!isDragging) return;
+            const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+            const deltaX = clientX - startX;
+            if (Math.abs(deltaX) > dragThreshold) dragMoved = true;
+            let newTranslate = startTranslate + deltaX;
+            applyTranslate(newTranslate);
+            handleInfiniteLoop();
+            if (e.cancelable) e.preventDefault();
+        }
+        
+        function onDragEnd(e) {
+            if (!isDragging) {
+                container.style.cursor = 'grab';
+                return;
+            }
+            isDragging = false;
+            container.style.cursor = 'grab';
+            startAutoScroll();
+        }
+        
+        function initGalleryDrag() {
+            updateTrackWidths();
+            window.addEventListener('resize', () => {
+                updateTrackWidths();
+                handleInfiniteLoop();
+            });
+            container.addEventListener('mousedown', onDragStart);
+            window.addEventListener('mousemove', onDragMove);
+            window.addEventListener('mouseup', onDragEnd);
+            container.addEventListener('touchstart', onDragStart, { passive: false });
+            window.addEventListener('touchmove', onDragMove, { passive: false });
+            window.addEventListener('touchend', onDragEnd);
+            container.style.cursor = 'grab';
+            startAutoScroll();
+        }
+        
+        setTimeout(() => {
+            updateTrackWidths();
+            initGalleryDrag();
+        }, 100);
+    </script>
+</body>
+</html>
